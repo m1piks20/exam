@@ -1,0 +1,1862 @@
+ДЕМОНСТРАЦИОННЫЙ ЭКЗАМЕН. ПРОЕКТ С 0 ДО 100%
+Тема: информационная система для магазина. Предметная область может быть обувь, игрушки или другая торговля.
+Платформа: .NET Framework 4.7.2, Windows Forms, SQL Server, SQL Server Management Studio 18.
+
+ВАЖНО
+1. Названия сущностей сделаны нейтральными: Item, AppUser, OrderHeader, OrderLine, PickupPoint, RoleEntity.
+2. Поэтому при смене предметной области с обуви на игрушки БД не нужно переименовывать.
+3. Фотографии товара хранятся в папке проекта: NeutralTradeExam\Resources\ProductImages.
+4. В БД в таблице Item хранится только имя файла картинки, например 1.jpg.
+5. Логотип хранится в NeutralTradeExam\Resources\Logo.png.
+6. Иконка приложения хранится в NeutralTradeExam\Resources\AppIcon.ico.
+
+============================================================
+ЧАСТЬ 1. ЧТО ДОЛЖНО ПОЛУЧИТЬСЯ
+============================================================
+
+После выполнения инструкции получится WinForms-приложение:
+- первое окно при запуске — форма входа;
+- можно войти по логину и паролю из БД;
+- можно войти гостем;
+- гость/клиент видит каталог товаров без поиска, фильтрации и сортировки;
+- менеджер видит каталог с поиском, фильтрацией, сортировкой и заказы;
+- администратор может добавлять, редактировать и удалять товары и заказы;
+- в каталоге отображается мини-фото товара;
+- справа на главной форме отображается крупное фото выбранного товара;
+- скидка больше 15% подсвечивается цветом #2E8B57;
+- стиль соответствует заданию: Times New Roman, белый фон, #7FFF00, #00FA9A.
+
+============================================================
+ЧАСТЬ 2. ПОДГОТОВКА ПАПОК И ФОТОГРАФИЙ
+============================================================
+
+1. Создай папку проекта, например:
+   D:\Exam\NeutralTradeExam
+
+2. Внутри проекта должны быть такие папки:
+   NeutralTradeExam\Resources
+   NeutralTradeExam\Resources\ProductImages
+   Sql
+
+3. В папку NeutralTradeExam\Resources положи:
+   AppIcon.ico
+   Logo.png
+
+4. В папку NeutralTradeExam\Resources\ProductImages положи фотографии товаров.
+   В этом проекте используются имена:
+   1.jpg
+   2.jpg
+   3.jpg
+   4.jpg
+   5.jpg
+   6.jpg
+   7.jpg
+   8.jpg
+   9.jpg
+   10.jpg
+
+5. Важно: имена файлов картинок должны совпадать со значениями в поле ImagePath таблицы Item.
+   Например, если в БД написано ImagePath = '3.jpg', то в папке ProductImages должен быть файл 3.jpg.
+
+============================================================
+ЧАСТЬ 3. СОЗДАНИЕ БАЗЫ ДАННЫХ В SSMS 18
+============================================================
+
+1. Открой SQL Server Management Studio 18.
+2. Подключись к серверу SQL Server. Часто это:
+   .\SQLEXPRESS
+   или
+   (localdb)\MSSQLLocalDB
+   или имя твоего компьютера.
+3. Нажми File -> Open -> File.
+4. Открой файл Sql\CreateDatabase.sql.
+5. Нажми Execute.
+6. После выполнения появится БД TradeExamNeutral.
+
+Тестовые пользователи после выполнения скрипта:
+- admin / admin123 — администратор;
+- manager / manager123 — менеджер;
+- client / client123 — клиент.
+
+============================================================
+ЧАСТЬ 4. СОЗДАНИЕ ПРОЕКТА В VISUAL STUDIO
+============================================================
+
+Вариант А — проще:
+1. Открой файл NeutralTradeExam.sln.
+2. Проверь App.config.
+3. Запусти проект.
+
+Вариант Б — если создаёшь вручную с нуля:
+1. Открой Visual Studio.
+2. Create a new project.
+3. Выбери Windows Forms App (.NET Framework), язык C#.
+4. Название проекта: NeutralTradeExam.
+5. Framework: .NET Framework 4.7.2.
+6. После создания проекта добавь файлы:
+   AppState.cs
+   Db.cs
+   Ui.cs
+   LoginForm.cs + LoginForm.Designer.cs
+   MainForm.cs + MainForm.Designer.cs
+   ItemEditForm.cs + ItemEditForm.Designer.cs
+   OrderEditForm.cs + OrderEditForm.Designer.cs
+7. Удали стандартную Form1, если она есть.
+8. В Program.cs укажи запуск LoginForm.
+9. В свойствах проекта установи Icon = Resources\AppIcon.ico.
+10. Для файлов картинок в свойствах поставь Copy to Output Directory = Copy if newer.
+
+============================================================
+ЧАСТЬ 5. ПОДКЛЮЧЕНИЕ К БАЗЕ ДАННЫХ
+============================================================
+
+Подключение находится в файле App.config.
+Если SQL Server у тебя называется .\SQLEXPRESS, оставляй так:
+Data Source=.\SQLEXPRESS;Initial Catalog=TradeExamNeutral;Integrated Security=True
+
+Если сервер другой, меняй только Data Source.
+Например для LocalDB:
+Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=TradeExamNeutral;Integrated Security=True
+
+============================================================
+ЧАСТЬ 6. КАК ПРОВЕРЯТЬ РАБОТУ
+============================================================
+
+1. Запусти проект.
+2. Откроется форма входа.
+3. Нажми "Войти как гость" — откроется каталог без поиска, фильтров, сортировки и заказов.
+4. Войди как client/client123 — будет каталог без поиска, фильтров, сортировки.
+5. Войди как manager/manager123 — появятся поиск, фильтр, сортировка и вкладка заказов.
+6. Войди как admin/admin123 — дополнительно появятся кнопки добавить/изменить/удалить.
+7. Выбери товар в каталоге — справа должна появиться большая картинка товара.
+8. В первой колонке каталога должны быть миниатюры товаров.
+
+============================================================
+ЧАСТЬ 7. СТРУКТУРА ФАЙЛОВ
+============================================================
+
+NeutralTradeExam.sln
+NeutralTradeExam\NeutralTradeExam.csproj
+NeutralTradeExam\App.config
+NeutralTradeExam\Program.cs
+NeutralTradeExam\AppState.cs
+NeutralTradeExam\Db.cs
+NeutralTradeExam\Ui.cs
+NeutralTradeExam\LoginForm.cs
+NeutralTradeExam\LoginForm.Designer.cs
+NeutralTradeExam\MainForm.cs
+NeutralTradeExam\MainForm.Designer.cs
+NeutralTradeExam\ItemEditForm.cs
+NeutralTradeExam\ItemEditForm.Designer.cs
+NeutralTradeExam\OrderEditForm.cs
+NeutralTradeExam\OrderEditForm.Designer.cs
+NeutralTradeExam\Resources\AppIcon.ico
+NeutralTradeExam\Resources\Logo.png
+NeutralTradeExam\Resources\ProductImages\1.jpg ... 10.jpg
+Sql\CreateDatabase.sql
+
+============================================================
+ЧАСТЬ 8. ПОЛНЫЙ КОД ФАЙЛОВ
+============================================================
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam.sln
+НАЗНАЧЕНИЕ: Файл решения Visual Studio
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать в корневой папке решения или использовать созданный Visual Studio файл.
+------------------------------------------------------------
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28729.10
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeutralTradeExam", "NeutralTradeExam\NeutralTradeExam.csproj", "{A1DA042A-AB0E-4F27-979B-32F694934111}"
+EndProject
+Global
+    GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        Debug|Any CPU = Debug|Any CPU
+        Release|Any CPU = Release|Any CPU
+    EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {A1DA042A-AB0E-4F27-979B-32F694934111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {A1DA042A-AB0E-4F27-979B-32F694934111}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {A1DA042A-AB0E-4F27-979B-32F694934111}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {A1DA042A-AB0E-4F27-979B-32F694934111}.Release|Any CPU.Build.0 = Release|Any CPU
+    EndGlobalSection
+EndGlobal
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/NeutralTradeExam.csproj
+НАЗНАЧЕНИЕ: Файл проекта
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="false" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A1DA042A-AB0E-4F27-979B-32F694934111}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>NeutralTradeExam</RootNamespace>
+    <AssemblyName>NeutralTradeExam</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="AppState.cs" />
+    <Compile Include="Db.cs" />
+    <Compile Include="Ui.cs" />
+    <Compile Include="LoginForm.cs"><SubType>Form</SubType></Compile>
+    <Compile Include="LoginForm.Designer.cs"><DependentUpon>LoginForm.cs</DependentUpon></Compile>
+    <Compile Include="MainForm.cs"><SubType>Form</SubType></Compile>
+    <Compile Include="MainForm.Designer.cs"><DependentUpon>MainForm.cs</DependentUpon></Compile>
+    <Compile Include="ItemEditForm.cs"><SubType>Form</SubType></Compile>
+    <Compile Include="ItemEditForm.Designer.cs"><DependentUpon>ItemEditForm.cs</DependentUpon></Compile>
+    <Compile Include="OrderEditForm.cs"><SubType>Form</SubType></Compile>
+    <Compile Include="OrderEditForm.Designer.cs"><DependentUpon>OrderEditForm.cs</DependentUpon></Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <Content Include="Resources\AppIcon.ico" />
+    <Content Include="Resources\Logo.png"><CopyToOutputDirectory>Always</CopyToOutputDirectory></Content>
+    <Content Include="Resources\ProductImages\*.jpg"><CopyToOutputDirectory>Always</CopyToOutputDirectory></Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/App.config
+НАЗНАЧЕНИЕ: Строка подключения к БД
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <connectionStrings>
+    <add name="DefaultConnection" connectionString="Data Source=.\SQLEXPRESS;Initial Catalog=TradeExamNeutral;Integrated Security=True" providerName="System.Data.SqlClient" />
+  </connectionStrings>
+</configuration>
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/Program.cs
+НАЗНАЧЕНИЕ: Точка входа
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+using System;
+using System.Windows.Forms;
+
+namespace NeutralTradeExam
+{
+    static class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new LoginForm());
+        }
+    }
+}
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/AppState.cs
+НАЗНАЧЕНИЕ: Хранение текущей роли и пользователя
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+namespace NeutralTradeExam
+{
+    public static class AppState
+    {
+        public static int? UserId { get; set; }
+        public static string FullName { get; set; }
+        public static string Role { get; set; }
+        public static bool IsGuest { get { return string.IsNullOrWhiteSpace(Role); } }
+        public static bool IsAdmin { get { return Role == "Администратор"; } }
+        public static bool IsManager { get { return Role == "Менеджер"; } }
+        public static bool IsClient { get { return Role == "Клиент"; } }
+
+        public static void AsGuest()
+        {
+            UserId = null;
+            FullName = "Гость";
+            Role = null;
+        }
+    }
+}
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/Db.cs
+НАЗНАЧЕНИЕ: Класс подключения и запросов к SQL Server
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+using System;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+
+namespace NeutralTradeExam
+{
+    public static class Db
+    {
+        private static string ConnString { get { return ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString; } }
+
+        public static DataTable Table(string sql, params SqlParameter[] pars)
+        {
+            using (var con = new SqlConnection(ConnString))
+            using (var cmd = new SqlCommand(sql, con))
+            using (var da = new SqlDataAdapter(cmd))
+            {
+                if (pars != null) cmd.Parameters.AddRange(pars);
+                var dt = new DataTable();
+                da.Fill(dt);
+                return dt;
+            }
+        }
+
+        public static object Scalar(string sql, params SqlParameter[] pars)
+        {
+            using (var con = new SqlConnection(ConnString))
+            using (var cmd = new SqlCommand(sql, con))
+            {
+                if (pars != null) cmd.Parameters.AddRange(pars);
+                con.Open();
+                return cmd.ExecuteScalar();
+            }
+        }
+
+        public static int Exec(string sql, params SqlParameter[] pars)
+        {
+            using (var con = new SqlConnection(ConnString))
+            using (var cmd = new SqlCommand(sql, con))
+            {
+                if (pars != null) cmd.Parameters.AddRange(pars);
+                con.Open();
+                return cmd.ExecuteNonQuery();
+            }
+        }
+    }
+}
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/Ui.cs
+НАЗНАЧЕНИЕ: Общий стиль интерфейса
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace NeutralTradeExam
+{
+    public static class Ui
+    {
+        public static readonly Color MainBack = Color.White;
+        public static readonly Color ExtraBack = ColorTranslator.FromHtml("#7FFF00");
+        public static readonly Color Accent = ColorTranslator.FromHtml("#00FA9A");
+        public static readonly Color DiscountBack = ColorTranslator.FromHtml("#2E8B57");
+
+        public static void Apply(Form form)
+        {
+            form.BackColor = MainBack;
+            form.Font = new Font("Times New Roman", 10F);
+            form.StartPosition = FormStartPosition.CenterScreen;
+            try { form.Icon = new Icon("Resources\\AppIcon.ico"); } catch { }
+        }
+
+        public static Button AccentButton(string text)
+        {
+            return new Button { Text = text, BackColor = Accent, FlatStyle = FlatStyle.Flat, Height = 32, Width = 130 };
+        }
+    }
+}
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/LoginForm.Designer.cs
+НАЗНАЧЕНИЕ: Дизайн формы авторизации
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+namespace NeutralTradeExam
+{
+    partial class LoginForm
+    {
+        private System.ComponentModel.IContainer components = null;
+        private System.Windows.Forms.PictureBox logoBox;
+        private System.Windows.Forms.Label titleLabel;
+        private System.Windows.Forms.Label loginLabel;
+        private System.Windows.Forms.Label passwordLabel;
+        private System.Windows.Forms.TextBox loginTextBox;
+        private System.Windows.Forms.TextBox passwordTextBox;
+        private System.Windows.Forms.Button enterButton;
+        private System.Windows.Forms.Button guestButton;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null)) components.Dispose();
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.logoBox = new System.Windows.Forms.PictureBox();
+            this.titleLabel = new System.Windows.Forms.Label();
+            this.loginLabel = new System.Windows.Forms.Label();
+            this.passwordLabel = new System.Windows.Forms.Label();
+            this.loginTextBox = new System.Windows.Forms.TextBox();
+            this.passwordTextBox = new System.Windows.Forms.TextBox();
+            this.enterButton = new System.Windows.Forms.Button();
+            this.guestButton = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize)(this.logoBox)).BeginInit();
+            this.SuspendLayout();
+            this.logoBox.Location = new System.Drawing.Point(20, 15);
+            this.logoBox.Name = "logoBox";
+            this.logoBox.Size = new System.Drawing.Size(86, 70);
+            this.logoBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.titleLabel.AutoSize = true;
+            this.titleLabel.Font = new System.Drawing.Font("Times New Roman", 16F, System.Drawing.FontStyle.Bold);
+            this.titleLabel.Location = new System.Drawing.Point(125, 35);
+            this.titleLabel.Name = "titleLabel";
+            this.titleLabel.Size = new System.Drawing.Size(277, 25);
+            this.titleLabel.Text = "Вход в систему ООО «Обувь»";
+            this.loginLabel.AutoSize = true;
+            this.loginLabel.Location = new System.Drawing.Point(55, 115);
+            this.loginLabel.Text = "Логин";
+            this.loginTextBox.Location = new System.Drawing.Point(150, 112);
+            this.loginTextBox.Size = new System.Drawing.Size(250, 23);
+            this.passwordLabel.AutoSize = true;
+            this.passwordLabel.Location = new System.Drawing.Point(55, 155);
+            this.passwordLabel.Text = "Пароль";
+            this.passwordTextBox.Location = new System.Drawing.Point(150, 152);
+            this.passwordTextBox.Size = new System.Drawing.Size(250, 23);
+            this.passwordTextBox.UseSystemPasswordChar = true;
+            this.enterButton.Location = new System.Drawing.Point(150, 200);
+            this.enterButton.Size = new System.Drawing.Size(120, 34);
+            this.enterButton.Text = "Войти";
+            this.enterButton.UseVisualStyleBackColor = false;
+            this.enterButton.Click += new System.EventHandler(this.enterButton_Click);
+            this.guestButton.Location = new System.Drawing.Point(280, 200);
+            this.guestButton.Size = new System.Drawing.Size(120, 34);
+            this.guestButton.Text = "Гость";
+            this.guestButton.UseVisualStyleBackColor = false;
+            this.guestButton.Click += new System.EventHandler(this.guestButton_Click);
+            this.AcceptButton = this.enterButton;
+            this.ClientSize = new System.Drawing.Size(460, 270);
+            this.Controls.Add(this.logoBox);
+            this.Controls.Add(this.titleLabel);
+            this.Controls.Add(this.loginLabel);
+            this.Controls.Add(this.loginTextBox);
+            this.Controls.Add(this.passwordLabel);
+            this.Controls.Add(this.passwordTextBox);
+            this.Controls.Add(this.enterButton);
+            this.Controls.Add(this.guestButton);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.Name = "LoginForm";
+            this.Text = "Авторизация";
+            ((System.ComponentModel.ISupportInitialize)(this.logoBox)).EndInit();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+        }
+    }
+}
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/LoginForm.cs
+НАЗНАЧЕНИЕ: Логика формы авторизации
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace NeutralTradeExam
+{
+    public partial class LoginForm : Form
+    {
+        public LoginForm()
+        {
+            InitializeComponent();
+            Ui.Apply(this);
+            enterButton.BackColor = Ui.Accent;
+            guestButton.BackColor = Ui.ExtraBack;
+            try { logoBox.Image = Image.FromFile("Resources\\Logo.png"); } catch { }
+        }
+
+        private void enterButton_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(loginTextBox.Text) || string.IsNullOrWhiteSpace(passwordTextBox.Text))
+            {
+                MessageBox.Show("Введите логин и пароль.");
+                return;
+            }
+
+            var dt = Db.Table(@"SELECT TOP 1 u.Id, u.FullName, r.Title AS RoleTitle
+                                FROM AppUser u INNER JOIN RoleEntity r ON r.Id = u.RoleId
+                                WHERE u.Login = @login AND u.PasswordText = @password",
+                new SqlParameter("@login", loginTextBox.Text.Trim()),
+                new SqlParameter("@password", passwordTextBox.Text.Trim()));
+
+            if (dt.Rows.Count == 0)
+            {
+                MessageBox.Show("Неверный логин или пароль.");
+                return;
+            }
+
+            AppState.UserId = Convert.ToInt32(dt.Rows[0]["Id"]);
+            AppState.FullName = Convert.ToString(dt.Rows[0]["FullName"]);
+            AppState.Role = Convert.ToString(dt.Rows[0]["RoleTitle"]);
+            OpenMain();
+        }
+
+        private void guestButton_Click(object sender, EventArgs e)
+        {
+            AppState.AsGuest();
+            OpenMain();
+        }
+
+        private void OpenMain()
+        {
+            Hide();
+            using (var f = new MainForm()) f.ShowDialog();
+            Show();
+            passwordTextBox.Clear();
+        }
+    }
+}
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/MainForm.Designer.cs
+НАЗНАЧЕНИЕ: Дизайн главной формы
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+namespace NeutralTradeExam
+{
+    partial class MainForm
+    {
+        private System.ComponentModel.IContainer components = null;
+        private System.Windows.Forms.Panel headerPanel;
+        private System.Windows.Forms.PictureBox logoBox;
+        private System.Windows.Forms.Label userLabel;
+        private System.Windows.Forms.Button exitButton;
+        private System.Windows.Forms.TabControl tabControl;
+        private System.Windows.Forms.TabPage itemsTab;
+        private System.Windows.Forms.TabPage ordersTab;
+        private System.Windows.Forms.Panel itemFilterPanel;
+        private System.Windows.Forms.TextBox searchTextBox;
+        private System.Windows.Forms.ComboBox categoryComboBox;
+        private System.Windows.Forms.ComboBox sortComboBox;
+        private System.Windows.Forms.Button refreshItemsButton;
+        private System.Windows.Forms.Button addItemButton;
+        private System.Windows.Forms.Button editItemButton;
+        private System.Windows.Forms.Button deleteItemButton;
+        private System.Windows.Forms.DataGridView itemsGrid;
+        private System.Windows.Forms.Panel itemPreviewPanel;
+        private System.Windows.Forms.PictureBox itemImageBox;
+        private System.Windows.Forms.Label itemPhotoTitleLabel;
+        private System.Windows.Forms.Label itemPhotoPathLabel;
+        private System.Windows.Forms.Panel orderPanel;
+        private System.Windows.Forms.Button refreshOrdersButton;
+        private System.Windows.Forms.Button addOrderButton;
+        private System.Windows.Forms.Button editOrderButton;
+        private System.Windows.Forms.Button deleteOrderButton;
+        private System.Windows.Forms.DataGridView ordersGrid;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null)) components.Dispose();
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.headerPanel = new System.Windows.Forms.Panel();
+            this.logoBox = new System.Windows.Forms.PictureBox();
+            this.userLabel = new System.Windows.Forms.Label();
+            this.exitButton = new System.Windows.Forms.Button();
+            this.tabControl = new System.Windows.Forms.TabControl();
+            this.itemsTab = new System.Windows.Forms.TabPage();
+            this.itemFilterPanel = new System.Windows.Forms.Panel();
+            this.searchTextBox = new System.Windows.Forms.TextBox();
+            this.categoryComboBox = new System.Windows.Forms.ComboBox();
+            this.sortComboBox = new System.Windows.Forms.ComboBox();
+            this.refreshItemsButton = new System.Windows.Forms.Button();
+            this.addItemButton = new System.Windows.Forms.Button();
+            this.editItemButton = new System.Windows.Forms.Button();
+            this.deleteItemButton = new System.Windows.Forms.Button();
+            this.itemsGrid = new System.Windows.Forms.DataGridView();
+            this.itemPreviewPanel = new System.Windows.Forms.Panel();
+            this.itemImageBox = new System.Windows.Forms.PictureBox();
+            this.itemPhotoTitleLabel = new System.Windows.Forms.Label();
+            this.itemPhotoPathLabel = new System.Windows.Forms.Label();
+            this.ordersTab = new System.Windows.Forms.TabPage();
+            this.orderPanel = new System.Windows.Forms.Panel();
+            this.refreshOrdersButton = new System.Windows.Forms.Button();
+            this.addOrderButton = new System.Windows.Forms.Button();
+            this.editOrderButton = new System.Windows.Forms.Button();
+            this.deleteOrderButton = new System.Windows.Forms.Button();
+            this.ordersGrid = new System.Windows.Forms.DataGridView();
+            this.headerPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.logoBox)).BeginInit();
+            this.tabControl.SuspendLayout();
+            this.itemsTab.SuspendLayout();
+            this.itemFilterPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.itemsGrid)).BeginInit();
+            this.itemPreviewPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.itemImageBox)).BeginInit();
+            this.ordersTab.SuspendLayout();
+            this.orderPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ordersGrid)).BeginInit();
+            this.SuspendLayout();
+            this.headerPanel.Controls.Add(this.logoBox);
+            this.headerPanel.Controls.Add(this.userLabel);
+            this.headerPanel.Controls.Add(this.exitButton);
+            this.headerPanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.headerPanel.Height = 82;
+            this.headerPanel.BackColor = System.Drawing.ColorTranslator.FromHtml("#7FFF00");
+            this.logoBox.Location = new System.Drawing.Point(12, 8);
+            this.logoBox.Size = new System.Drawing.Size(75, 65);
+            this.logoBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.userLabel.AutoSize = true;
+            this.userLabel.Location = new System.Drawing.Point(105, 30);
+            this.userLabel.Font = new System.Drawing.Font("Times New Roman", 14F, System.Drawing.FontStyle.Bold);
+            this.exitButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.exitButton.Location = new System.Drawing.Point(850, 25);
+            this.exitButton.Size = new System.Drawing.Size(110, 32);
+            this.exitButton.Text = "Выйти";
+            this.exitButton.Click += new System.EventHandler(this.exitButton_Click);
+            this.tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl.Controls.Add(this.itemsTab);
+            this.tabControl.Controls.Add(this.ordersTab);
+            this.itemsTab.Text = "Товары";
+            this.itemsTab.Controls.Add(this.itemsGrid);
+            this.itemsTab.Controls.Add(this.itemPreviewPanel);
+            this.itemsTab.Controls.Add(this.itemFilterPanel);
+            this.itemFilterPanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.itemFilterPanel.Height = 52;
+            this.itemFilterPanel.Controls.Add(this.searchTextBox);
+            this.itemFilterPanel.Controls.Add(this.categoryComboBox);
+            this.itemFilterPanel.Controls.Add(this.sortComboBox);
+            this.itemFilterPanel.Controls.Add(this.refreshItemsButton);
+            this.itemFilterPanel.Controls.Add(this.addItemButton);
+            this.itemFilterPanel.Controls.Add(this.editItemButton);
+            this.itemFilterPanel.Controls.Add(this.deleteItemButton);
+            this.searchTextBox.Location = new System.Drawing.Point(10, 15);
+            this.searchTextBox.Width = 170;
+            this.searchTextBox.TextChanged += new System.EventHandler(this.itemFilter_Changed);
+            this.categoryComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.categoryComboBox.Location = new System.Drawing.Point(190, 14);
+            this.categoryComboBox.Width = 150;
+            this.categoryComboBox.SelectedIndexChanged += new System.EventHandler(this.itemFilter_Changed);
+            this.sortComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.sortComboBox.Location = new System.Drawing.Point(350, 14);
+            this.sortComboBox.Width = 160;
+            this.sortComboBox.SelectedIndexChanged += new System.EventHandler(this.itemFilter_Changed);
+            this.refreshItemsButton.Location = new System.Drawing.Point(520, 12);
+            this.refreshItemsButton.Size = new System.Drawing.Size(90, 28);
+            this.refreshItemsButton.Text = "Обновить";
+            this.refreshItemsButton.Click += new System.EventHandler(this.refreshItemsButton_Click);
+            this.addItemButton.Location = new System.Drawing.Point(620, 12);
+            this.addItemButton.Size = new System.Drawing.Size(90, 28);
+            this.addItemButton.Text = "Добавить";
+            this.addItemButton.Click += new System.EventHandler(this.addItemButton_Click);
+            this.editItemButton.Location = new System.Drawing.Point(720, 12);
+            this.editItemButton.Size = new System.Drawing.Size(90, 28);
+            this.editItemButton.Text = "Изменить";
+            this.editItemButton.Click += new System.EventHandler(this.editItemButton_Click);
+            this.deleteItemButton.Location = new System.Drawing.Point(820, 12);
+            this.deleteItemButton.Size = new System.Drawing.Size(90, 28);
+            this.deleteItemButton.Text = "Удалить";
+            this.deleteItemButton.Click += new System.EventHandler(this.deleteItemButton_Click);
+            this.itemsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.itemsGrid.ReadOnly = true;
+            this.itemsGrid.AllowUserToAddRows = false;
+            this.itemsGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.itemsGrid.MultiSelect = false;
+            this.itemsGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.itemsGrid.SelectionChanged += new System.EventHandler(this.itemsGrid_SelectionChanged);
+            this.itemsGrid.RowPrePaint += new System.Windows.Forms.DataGridViewRowPrePaintEventHandler(this.itemsGrid_RowPrePaint);
+            this.itemPreviewPanel.Dock = System.Windows.Forms.DockStyle.Right;
+            this.itemPreviewPanel.Width = 250;
+            this.itemPreviewPanel.BackColor = System.Drawing.Color.White;
+            this.itemPreviewPanel.Padding = new System.Windows.Forms.Padding(10);
+            this.itemPreviewPanel.Controls.Add(this.itemPhotoPathLabel);
+            this.itemPreviewPanel.Controls.Add(this.itemImageBox);
+            this.itemPreviewPanel.Controls.Add(this.itemPhotoTitleLabel);
+            this.itemPhotoTitleLabel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.itemPhotoTitleLabel.Height = 32;
+            this.itemPhotoTitleLabel.Text = "Фото товара";
+            this.itemPhotoTitleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.itemPhotoTitleLabel.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Bold);
+            this.itemImageBox.Dock = System.Windows.Forms.DockStyle.Top;
+            this.itemImageBox.Height = 190;
+            this.itemImageBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.itemImageBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.itemPhotoPathLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.itemPhotoPathLabel.Text = "Выберите товар в таблице";
+            this.itemPhotoPathLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.ordersTab.Text = "Заказы";
+            this.ordersTab.Controls.Add(this.ordersGrid);
+            this.ordersTab.Controls.Add(this.orderPanel);
+            this.orderPanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.orderPanel.Height = 52;
+            this.orderPanel.Controls.Add(this.refreshOrdersButton);
+            this.orderPanel.Controls.Add(this.addOrderButton);
+            this.orderPanel.Controls.Add(this.editOrderButton);
+            this.orderPanel.Controls.Add(this.deleteOrderButton);
+            this.refreshOrdersButton.Location = new System.Drawing.Point(10, 12);
+            this.refreshOrdersButton.Size = new System.Drawing.Size(90, 28);
+            this.refreshOrdersButton.Text = "Обновить";
+            this.refreshOrdersButton.Click += new System.EventHandler(this.refreshOrdersButton_Click);
+            this.addOrderButton.Location = new System.Drawing.Point(110, 12);
+            this.addOrderButton.Size = new System.Drawing.Size(90, 28);
+            this.addOrderButton.Text = "Добавить";
+            this.addOrderButton.Click += new System.EventHandler(this.addOrderButton_Click);
+            this.editOrderButton.Location = new System.Drawing.Point(210, 12);
+            this.editOrderButton.Size = new System.Drawing.Size(90, 28);
+            this.editOrderButton.Text = "Изменить";
+            this.editOrderButton.Click += new System.EventHandler(this.editOrderButton_Click);
+            this.deleteOrderButton.Location = new System.Drawing.Point(310, 12);
+            this.deleteOrderButton.Size = new System.Drawing.Size(90, 28);
+            this.deleteOrderButton.Text = "Удалить";
+            this.deleteOrderButton.Click += new System.EventHandler(this.deleteOrderButton_Click);
+            this.ordersGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ordersGrid.ReadOnly = true;
+            this.ordersGrid.AllowUserToAddRows = false;
+            this.ordersGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.ordersGrid.MultiSelect = false;
+            this.ordersGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.ClientSize = new System.Drawing.Size(984, 620);
+            this.Controls.Add(this.tabControl);
+            this.Controls.Add(this.headerPanel);
+            this.Name = "MainForm";
+            this.Text = "Главная форма";
+            this.headerPanel.ResumeLayout(false);
+            this.headerPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.logoBox)).EndInit();
+            this.tabControl.ResumeLayout(false);
+            this.itemsTab.ResumeLayout(false);
+            this.itemFilterPanel.ResumeLayout(false);
+            this.itemFilterPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.itemsGrid)).EndInit();
+            this.itemPreviewPanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.itemImageBox)).EndInit();
+            this.ordersTab.ResumeLayout(false);
+            this.orderPanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.ordersGrid)).EndInit();
+            this.ResumeLayout(false);
+        }
+    }
+}
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/MainForm.cs
+НАЗНАЧЕНИЕ: Логика главной формы
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
+
+namespace NeutralTradeExam
+{
+    public partial class MainForm : Form
+    {
+        public MainForm()
+        {
+            InitializeComponent();
+            Ui.Apply(this);
+            try { logoBox.Image = Image.FromFile("Resources\\Logo.png"); } catch { }
+            exitButton.BackColor = Ui.Accent;
+            addItemButton.BackColor = editItemButton.BackColor = deleteItemButton.BackColor = Ui.Accent;
+            addOrderButton.BackColor = editOrderButton.BackColor = deleteOrderButton.BackColor = Ui.Accent;
+            userLabel.Text = "Пользователь: " + AppState.FullName + "    Роль: " + (AppState.IsGuest ? "Гость" : AppState.Role);
+            ConfigureAccess();
+            LoadCategories();
+            sortComboBox.Items.AddRange(new object[] { "Без сортировки", "Цена по возрастанию", "Цена по убыванию", "Скидка по возрастанию", "Скидка по убыванию" });
+            sortComboBox.SelectedIndex = 0;
+            LoadItems();
+            LoadOrders();
+        }
+
+        private void ConfigureAccess()
+        {
+            bool canFilter = AppState.IsManager || AppState.IsAdmin;
+            searchTextBox.Visible = categoryComboBox.Visible = sortComboBox.Visible = canFilter;
+            addItemButton.Visible = editItemButton.Visible = deleteItemButton.Visible = AppState.IsAdmin;
+            ordersTab.Parent = (AppState.IsManager || AppState.IsAdmin) ? tabControl : null;
+            addOrderButton.Visible = editOrderButton.Visible = deleteOrderButton.Visible = AppState.IsAdmin;
+        }
+
+        private void LoadCategories()
+        {
+            categoryComboBox.Items.Clear();
+            categoryComboBox.Items.Add("Все категории");
+            foreach (DataRow r in Db.Table("SELECT DISTINCT Category FROM Item WHERE Category IS NOT NULL ORDER BY Category").Rows)
+                categoryComboBox.Items.Add(Convert.ToString(r[0]));
+            categoryComboBox.SelectedIndex = 0;
+            searchTextBox.Text = "";
+        }
+
+        private void LoadItems()
+        {
+            string sql = @"SELECT Id, Article AS [Артикул], Title AS [Наименование], Unit AS [Ед.], Price AS [Цена], Supplier AS [Поставщик], Producer AS [Производитель], Category AS [Категория], Discount AS [Скидка], Quantity AS [На складе], Description AS [Описание], ImagePath AS [Фото]
+                           FROM Item WHERE 1=1";
+            var pars = new System.Collections.Generic.List<SqlParameter>();
+            if (AppState.IsManager || AppState.IsAdmin)
+            {
+                if (!string.IsNullOrWhiteSpace(searchTextBox.Text))
+                {
+                    sql += " AND (Article LIKE @q OR Title LIKE @q OR Description LIKE @q OR Supplier LIKE @q OR Producer LIKE @q)";
+                    pars.Add(new SqlParameter("@q", "%" + searchTextBox.Text.Trim() + "%"));
+                }
+                if (categoryComboBox.SelectedIndex > 0)
+                {
+                    sql += " AND Category = @cat";
+                    pars.Add(new SqlParameter("@cat", categoryComboBox.Text));
+                }
+                if (sortComboBox.Text == "Цена по возрастанию") sql += " ORDER BY Price ASC";
+                else if (sortComboBox.Text == "Цена по убыванию") sql += " ORDER BY Price DESC";
+                else if (sortComboBox.Text == "Скидка по возрастанию") sql += " ORDER BY Discount ASC";
+                else if (sortComboBox.Text == "Скидка по убыванию") sql += " ORDER BY Discount DESC";
+                else sql += " ORDER BY Id";
+            }
+            else sql += " ORDER BY Id";
+
+            DataTable table = Db.Table(sql, pars.ToArray());
+            itemsGrid.DataSource = table;
+            ConfigureItemsGridView();
+            AddCatalogImageColumn();
+            FillCatalogImages();
+            ShowSelectedItemImage();
+        }
+
+
+        private void AddCatalogImageColumn()
+        {
+            // Каждый раз создаем колонку заново.
+            // Так мы не зависим от того, какой тип колонки DataGridView создал автоматически.
+            if (itemsGrid.Columns.Contains("Картинка"))
+                itemsGrid.Columns.Remove("Картинка");
+
+            DataGridViewImageColumn catalogImageColumn = new DataGridViewImageColumn();
+            catalogImageColumn.Name = "Картинка";
+            catalogImageColumn.HeaderText = "Фото";
+            catalogImageColumn.ImageLayout = DataGridViewImageCellLayout.Zoom;
+            catalogImageColumn.Width = 105;
+            catalogImageColumn.FillWeight = 60;
+
+            itemsGrid.Columns.Insert(0, catalogImageColumn);
+        }
+
+        private void FillCatalogImages()
+        {
+            if (!itemsGrid.Columns.Contains("Картинка") || !itemsGrid.Columns.Contains("Фото"))
+                return;
+
+            foreach (DataGridViewRow row in itemsGrid.Rows)
+            {
+                if (row.IsNewRow) continue;
+
+                string imageName = Convert.ToString(row.Cells["Фото"].Value);
+                row.Cells["Картинка"].Value = LoadItemThumbnail(imageName, 90, 70);
+            }
+        }
+
+        private Image LoadItemThumbnail(string imageName, int width, int height)
+        {
+            if (string.IsNullOrWhiteSpace(imageName)) return null;
+
+            string path = imageName;
+            if (!Path.IsPathRooted(path))
+                path = Path.Combine(Application.StartupPath, "Resources", "ProductImages", imageName);
+
+            if (!File.Exists(path)) return null;
+
+            try
+            {
+                using (var source = Image.FromFile(path))
+                {
+                    Bitmap result = new Bitmap(width, height);
+                    using (Graphics g = Graphics.FromImage(result))
+                    {
+                        g.Clear(Color.White);
+                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+
+                        double ratio = Math.Min((double)width / source.Width, (double)height / source.Height);
+                        int newWidth = (int)(source.Width * ratio);
+                        int newHeight = (int)(source.Height * ratio);
+                        int left = (width - newWidth) / 2;
+                        int top = (height - newHeight) / 2;
+
+                        g.DrawImage(source, left, top, newWidth, newHeight);
+                    }
+                    return result;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+
+-------------WARNING-------
+
+ private Image LoadItemThumbnail(string imageName, int width, int height)
+ {
+     try
+     {
+         string path = Path.Combine(
+             Application.StartupPath,
+             "Resources",
+             "ProductImages",
+             imageName);
+
+         if (!File.Exists(path))
+             throw new FileNotFoundException();
+
+         using (var img = Image.FromFile(path))
+         {
+             return new Bitmap(img, new Size(width, height));
+         }
+     }
+     catch
+     {
+         string logoPath = Path.Combine(
+             Application.StartupPath,
+             "Resources",
+             "Logo.png");
+
+         if (File.Exists(logoPath))
+         {
+             using (var img = Image.FromFile(logoPath))
+             {
+                 return new Bitmap(img, new Size(width, height));
+             }
+         }
+
+         return new Bitmap(width, height);
+     }
+ }
+
+
+-------------------------------------
+
+
+
+        private void ConfigureItemsGridView()
+        {
+            if (itemsGrid.Columns.Contains("Id")) itemsGrid.Columns["Id"].Visible = false;
+            if (itemsGrid.Columns.Contains("Фото")) itemsGrid.Columns["Фото"].Visible = false;
+
+            itemsGrid.RowTemplate.Height = 82;
+            foreach (DataGridViewRow row in itemsGrid.Rows)
+                row.Height = 82;
+
+            if (itemsGrid.Columns.Contains("Описание"))
+                itemsGrid.Columns["Описание"].Visible = false;
+
+            if (itemsGrid.Columns.Contains("Наименование"))
+                itemsGrid.Columns["Наименование"].FillWeight = 160;
+        }
+
+        private void LoadOrders()
+        {
+            if (!(AppState.IsManager || AppState.IsAdmin)) return;
+            ordersGrid.DataSource = Db.Table(@"SELECT h.Id AS [Номер], h.OrderDate AS [Дата заказа], h.DeliveryDate AS [Дата доставки], p.AddressText AS [Пункт выдачи], u.FullName AS [Клиент], h.ReceiveCode AS [Код], s.Title AS [Статус],
+                        STUFF((SELECT ', ' + i.Article + ' x' + CAST(l.Quantity AS NVARCHAR(10)) FROM OrderLine l INNER JOIN Item i ON i.Id=l.ItemId WHERE l.OrderId=h.Id FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'),1,2,'') AS [Состав]
+                        FROM OrderHeader h
+                        INNER JOIN PickupPoint p ON p.Id=h.PickupPointId
+                        LEFT JOIN AppUser u ON u.Id=h.AppUserId
+                        INNER JOIN OrderStatus s ON s.Id=h.StatusId
+                        ORDER BY h.Id");
+        }
+
+        private int SelectedId(DataGridView grid, string columnName)
+        {
+            if (grid.CurrentRow == null) return 0;
+            return Convert.ToInt32(grid.CurrentRow.Cells[columnName].Value);
+        }
+
+        private void itemFilter_Changed(object sender, EventArgs e) { if (sortComboBox.SelectedIndex >= 0) LoadItems(); }
+        private void refreshItemsButton_Click(object sender, EventArgs e) { LoadCategories(); LoadItems(); }
+        private void refreshOrdersButton_Click(object sender, EventArgs e) { LoadOrders(); }
+        private void exitButton_Click(object sender, EventArgs e) { Close(); }
+
+        private void addItemButton_Click(object sender, EventArgs e)
+        {
+            using (var f = new ItemEditForm(null)) if (f.ShowDialog() == DialogResult.OK) { LoadCategories(); LoadItems(); }
+        }
+
+        private void editItemButton_Click(object sender, EventArgs e)
+        {
+            int id = SelectedId(itemsGrid, "Id");
+            if (id == 0) return;
+            using (var f = new ItemEditForm(id)) if (f.ShowDialog() == DialogResult.OK) { LoadCategories(); LoadItems(); }
+        }
+
+        private void deleteItemButton_Click(object sender, EventArgs e)
+        {
+            int id = SelectedId(itemsGrid, "Id");
+            if (id == 0) return;
+            if (MessageBox.Show("Удалить выбранную запись?", "Подтверждение", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                try { Db.Exec("DELETE FROM Item WHERE Id=@id", new SqlParameter("@id", id)); LoadItems(); }
+                catch (Exception ex) { MessageBox.Show("Удаление невозможно: " + ex.Message); }
+            }
+        }
+
+        private void addOrderButton_Click(object sender, EventArgs e)
+        {
+            using (var f = new OrderEditForm(null)) if (f.ShowDialog() == DialogResult.OK) LoadOrders();
+        }
+
+        private void editOrderButton_Click(object sender, EventArgs e)
+        {
+            int id = SelectedId(ordersGrid, "Номер");
+            if (id == 0) return;
+            using (var f = new OrderEditForm(id)) if (f.ShowDialog() == DialogResult.OK) LoadOrders();
+        }
+
+        private void deleteOrderButton_Click(object sender, EventArgs e)
+        {
+            int id = SelectedId(ordersGrid, "Номер");
+            if (id == 0) return;
+            if (MessageBox.Show("Удалить выбранный заказ?", "Подтверждение", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                Db.Exec("DELETE FROM OrderHeader WHERE Id=@id", new SqlParameter("@id", id));
+                LoadOrders();
+            }
+        }
+
+
+        private void itemsGrid_SelectionChanged(object sender, EventArgs e)
+        {
+            ShowSelectedItemImage();
+        }
+
+        private void ShowSelectedItemImage()
+        {
+            if (itemsGrid.CurrentRow == null || !itemsGrid.Columns.Contains("Фото"))
+            {
+                SetItemImage(null, "Выберите товар в таблице");
+                return;
+            }
+
+            string imageName = Convert.ToString(itemsGrid.CurrentRow.Cells["Фото"].Value);
+            if (string.IsNullOrWhiteSpace(imageName))
+            {
+                SetItemImage(null, "Для этого товара фото не указано");
+                return;
+            }
+
+            string path = imageName;
+            if (!Path.IsPathRooted(path))
+                path = Path.Combine(Application.StartupPath, "Resources", "ProductImages", imageName);
+
+            if (!File.Exists(path))
+            {
+                SetItemImage(null, "Файл не найден: " + imageName);
+                return;
+            }
+
+            try
+            {
+                using (var temp = Image.FromFile(path))
+                {
+                    SetItemImage(new Bitmap(temp), imageName);
+                }
+            }
+            catch
+            {
+                SetItemImage(null, "Не удалось открыть фото: " + imageName);
+            }
+        }
+
+        private void SetItemImage(Image image, string text)
+        {
+            if (itemImageBox.Image != null)
+            {
+                var old = itemImageBox.Image;
+                itemImageBox.Image = null;
+                old.Dispose();
+            }
+            itemImageBox.Image = image;
+            itemPhotoPathLabel.Text = text;
+        }
+
+        private void itemsGrid_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)
+        {
+            var row = itemsGrid.Rows[e.RowIndex];
+            if (itemsGrid.Columns.Contains("Скидка") && row.Cells["Скидка"].Value != DBNull.Value)
+            {
+                int discount = Convert.ToInt32(row.Cells["Скидка"].Value);
+                if (discount > 15) row.DefaultCellStyle.BackColor = Ui.DiscountBack;
+            }
+        }
+    }
+}
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/ItemEditForm.Designer.cs
+НАЗНАЧЕНИЕ: Дизайн формы товара
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+namespace NeutralTradeExam
+{
+    partial class ItemEditForm
+    {
+        private System.ComponentModel.IContainer components = null;
+        private System.Windows.Forms.TextBox articleTextBox;
+        private System.Windows.Forms.TextBox titleTextBox;
+        private System.Windows.Forms.TextBox unitTextBox;
+        private System.Windows.Forms.NumericUpDown priceNumeric;
+        private System.Windows.Forms.TextBox supplierTextBox;
+        private System.Windows.Forms.TextBox producerTextBox;
+        private System.Windows.Forms.TextBox categoryTextBox;
+        private System.Windows.Forms.NumericUpDown discountNumeric;
+        private System.Windows.Forms.NumericUpDown quantityNumeric;
+        private System.Windows.Forms.TextBox descriptionTextBox;
+        private System.Windows.Forms.TextBox imageTextBox;
+        private System.Windows.Forms.Button browseImageButton;
+        private System.Windows.Forms.PictureBox imagePreviewBox;
+        private System.Windows.Forms.Label articleLabel;
+        private System.Windows.Forms.Label titleLabel;
+        private System.Windows.Forms.Label unitLabel;
+        private System.Windows.Forms.Label priceLabel;
+        private System.Windows.Forms.Label supplierLabel;
+        private System.Windows.Forms.Label producerLabel;
+        private System.Windows.Forms.Label categoryLabel;
+        private System.Windows.Forms.Label discountLabel;
+        private System.Windows.Forms.Label quantityLabel;
+        private System.Windows.Forms.Label descriptionLabel;
+        private System.Windows.Forms.Label imageLabel;
+        private System.Windows.Forms.Button saveButton;
+        private System.Windows.Forms.Button cancelButton;
+        private System.Windows.Forms.OpenFileDialog openImageDialog;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null)) components.Dispose();
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.articleTextBox = new System.Windows.Forms.TextBox();
+            this.titleTextBox = new System.Windows.Forms.TextBox();
+            this.unitTextBox = new System.Windows.Forms.TextBox();
+            this.priceNumeric = new System.Windows.Forms.NumericUpDown();
+            this.supplierTextBox = new System.Windows.Forms.TextBox();
+            this.producerTextBox = new System.Windows.Forms.TextBox();
+            this.categoryTextBox = new System.Windows.Forms.TextBox();
+            this.discountNumeric = new System.Windows.Forms.NumericUpDown();
+            this.quantityNumeric = new System.Windows.Forms.NumericUpDown();
+            this.descriptionTextBox = new System.Windows.Forms.TextBox();
+            this.imageTextBox = new System.Windows.Forms.TextBox();
+            this.browseImageButton = new System.Windows.Forms.Button();
+            this.imagePreviewBox = new System.Windows.Forms.PictureBox();
+            this.articleLabel = new System.Windows.Forms.Label();
+            this.titleLabel = new System.Windows.Forms.Label();
+            this.unitLabel = new System.Windows.Forms.Label();
+            this.priceLabel = new System.Windows.Forms.Label();
+            this.supplierLabel = new System.Windows.Forms.Label();
+            this.producerLabel = new System.Windows.Forms.Label();
+            this.categoryLabel = new System.Windows.Forms.Label();
+            this.discountLabel = new System.Windows.Forms.Label();
+            this.quantityLabel = new System.Windows.Forms.Label();
+            this.descriptionLabel = new System.Windows.Forms.Label();
+            this.imageLabel = new System.Windows.Forms.Label();
+            this.saveButton = new System.Windows.Forms.Button();
+            this.cancelButton = new System.Windows.Forms.Button();
+            this.openImageDialog = new System.Windows.Forms.OpenFileDialog();
+            ((System.ComponentModel.ISupportInitialize)(this.priceNumeric)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.discountNumeric)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.quantityNumeric)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imagePreviewBox)).BeginInit();
+            this.SuspendLayout();
+            this.articleLabel.SetBounds(20, 22, 120, 23); this.articleLabel.Text = "Артикул";
+            this.titleLabel.SetBounds(20, 57, 120, 23); this.titleLabel.Text = "Наименование";
+            this.unitLabel.SetBounds(20, 92, 120, 23); this.unitLabel.Text = "Ед. измерения";
+            this.priceLabel.SetBounds(20, 127, 120, 23); this.priceLabel.Text = "Цена";
+            this.supplierLabel.SetBounds(20, 162, 120, 23); this.supplierLabel.Text = "Поставщик";
+            this.producerLabel.SetBounds(20, 197, 120, 23); this.producerLabel.Text = "Производитель";
+            this.categoryLabel.SetBounds(20, 232, 120, 23); this.categoryLabel.Text = "Категория";
+            this.discountLabel.SetBounds(20, 267, 120, 23); this.discountLabel.Text = "Скидка";
+            this.quantityLabel.SetBounds(20, 302, 120, 23); this.quantityLabel.Text = "Кол-во";
+            this.descriptionLabel.SetBounds(20, 337, 120, 23); this.descriptionLabel.Text = "Описание";
+            this.imageLabel.SetBounds(20, 407, 120, 23); this.imageLabel.Text = "Фото";
+            this.articleTextBox.SetBounds(160, 18, 280, 23);
+            this.titleTextBox.SetBounds(160, 53, 280, 23);
+            this.unitTextBox.SetBounds(160, 88, 280, 23);
+            this.priceNumeric.SetBounds(160, 123, 280, 23); this.priceNumeric.Maximum = 1000000; this.priceNumeric.DecimalPlaces = 2;
+            this.supplierTextBox.SetBounds(160, 158, 280, 23);
+            this.producerTextBox.SetBounds(160, 193, 280, 23);
+            this.categoryTextBox.SetBounds(160, 228, 280, 23);
+            this.discountNumeric.SetBounds(160, 263, 280, 23); this.discountNumeric.Maximum = 100;
+            this.quantityNumeric.SetBounds(160, 298, 280, 23); this.quantityNumeric.Maximum = 100000;
+            this.descriptionTextBox.SetBounds(160, 333, 280, 55); this.descriptionTextBox.Multiline = true;
+            this.imageTextBox.SetBounds(160, 403, 210, 23);
+            this.imageTextBox.TextChanged += new System.EventHandler(this.imageTextBox_TextChanged);
+            this.browseImageButton.SetBounds(380, 403, 60, 23);
+            this.browseImageButton.Text = "...";
+            this.browseImageButton.Click += new System.EventHandler(this.browseImageButton_Click);
+            this.imagePreviewBox.SetBounds(470, 18, 220, 220);
+            this.imagePreviewBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.imagePreviewBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.saveButton.SetBounds(160, 445, 120, 32); this.saveButton.Text = "Сохранить"; this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
+            this.cancelButton.SetBounds(320, 445, 120, 32); this.cancelButton.Text = "Отмена"; this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.Controls.Add(this.articleLabel); this.Controls.Add(this.titleLabel); this.Controls.Add(this.unitLabel); this.Controls.Add(this.priceLabel);
+            this.Controls.Add(this.supplierLabel); this.Controls.Add(this.producerLabel); this.Controls.Add(this.categoryLabel); this.Controls.Add(this.discountLabel);
+            this.Controls.Add(this.quantityLabel); this.Controls.Add(this.descriptionLabel); this.Controls.Add(this.imageLabel);
+            this.Controls.Add(this.articleTextBox); this.Controls.Add(this.titleTextBox); this.Controls.Add(this.unitTextBox); this.Controls.Add(this.priceNumeric);
+            this.Controls.Add(this.supplierTextBox); this.Controls.Add(this.producerTextBox); this.Controls.Add(this.categoryTextBox); this.Controls.Add(this.discountNumeric);
+            this.Controls.Add(this.quantityNumeric); this.Controls.Add(this.descriptionTextBox); this.Controls.Add(this.imageTextBox);
+            this.Controls.Add(this.browseImageButton); this.Controls.Add(this.imagePreviewBox); this.Controls.Add(this.saveButton); this.Controls.Add(this.cancelButton);
+            this.ClientSize = new System.Drawing.Size(715, 500);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.Name = "ItemEditForm";
+            this.Text = "Редактирование товара";
+            ((System.ComponentModel.ISupportInitialize)(this.priceNumeric)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.discountNumeric)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.quantityNumeric)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imagePreviewBox)).EndInit();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+        }
+    }
+}
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/ItemEditForm.cs
+НАЗНАЧЕНИЕ: Логика формы товара
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
+
+namespace NeutralTradeExam
+{
+    public partial class ItemEditForm : Form
+    {
+        private readonly int? itemId;
+
+        public ItemEditForm(int? id)
+        {
+            itemId = id;
+            InitializeComponent();
+            Ui.Apply(this);
+            saveButton.BackColor = Ui.Accent;
+            cancelButton.BackColor = Ui.ExtraBack;
+            Text = id.HasValue ? "Изменение товара" : "Добавление товара";
+            if (id.HasValue) LoadItem(id.Value);
+            else unitTextBox.Text = "шт.";
+            ShowPreview();
+        }
+
+        private void LoadItem(int id)
+        {
+            var dt = Db.Table("SELECT * FROM Item WHERE Id=@id", new SqlParameter("@id", id));
+            if (dt.Rows.Count == 0) return;
+            var r = dt.Rows[0];
+            articleTextBox.Text = Convert.ToString(r["Article"]);
+            titleTextBox.Text = Convert.ToString(r["Title"]);
+            unitTextBox.Text = Convert.ToString(r["Unit"]);
+            priceNumeric.Value = Convert.ToDecimal(r["Price"]);
+            supplierTextBox.Text = Convert.ToString(r["Supplier"]);
+            producerTextBox.Text = Convert.ToString(r["Producer"]);
+            categoryTextBox.Text = Convert.ToString(r["Category"]);
+            discountNumeric.Value = Convert.ToDecimal(r["Discount"]);
+            quantityNumeric.Value = Convert.ToDecimal(r["Quantity"]);
+            descriptionTextBox.Text = Convert.ToString(r["Description"]);
+            imageTextBox.Text = Convert.ToString(r["ImagePath"]);
+            ShowPreview();
+        }
+
+
+        private void imageTextBox_TextChanged(object sender, EventArgs e)
+        {
+            ShowPreview();
+        }
+
+        private void browseImageButton_Click(object sender, EventArgs e)
+        {
+            openImageDialog.Filter = "Изображения|*.jpg;*.jpeg;*.png;*.bmp|Все файлы|*.*";
+            if (openImageDialog.ShowDialog() != DialogResult.OK) return;
+
+            try
+            {
+                string imagesFolder = Path.Combine(Application.StartupPath, "Resources", "ProductImages");
+                Directory.CreateDirectory(imagesFolder);
+
+                string fileName = Path.GetFileName(openImageDialog.FileName);
+                string destination = Path.Combine(imagesFolder, fileName);
+
+                if (!File.Exists(destination) || !SameFile(openImageDialog.FileName, destination))
+                    File.Copy(openImageDialog.FileName, destination, true);
+
+                imageTextBox.Text = fileName;
+                ShowPreview();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Не удалось выбрать фото: " + ex.Message);
+            }
+        }
+
+        private bool SameFile(string firstPath, string secondPath)
+        {
+            return string.Equals(Path.GetFullPath(firstPath).TrimEnd('\\'), Path.GetFullPath(secondPath).TrimEnd('\\'), StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void ShowPreview()
+        {
+            if (imagePreviewBox == null) return;
+
+            if (imagePreviewBox.Image != null)
+            {
+                var old = imagePreviewBox.Image;
+                imagePreviewBox.Image = null;
+                old.Dispose();
+            }
+
+            string imageName = imageTextBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(imageName)) return;
+
+            string path = imageName;
+            if (!Path.IsPathRooted(path))
+                path = Path.Combine(Application.StartupPath, "Resources", "ProductImages", imageName);
+
+            if (!File.Exists(path)) return;
+
+            try
+            {
+                using (var temp = Image.FromFile(path))
+                {
+                    imagePreviewBox.Image = new Bitmap(temp);
+                }
+            }
+            catch
+            {
+                imagePreviewBox.Image = null;
+            }
+        }
+
+        private void saveButton_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(articleTextBox.Text) || string.IsNullOrWhiteSpace(titleTextBox.Text))
+            {
+                MessageBox.Show("Заполните артикул и наименование.");
+                return;
+            }
+
+            string sql = itemId.HasValue
+                ? @"UPDATE Item SET Article=@article, Title=@title, Unit=@unit, Price=@price, Supplier=@supplier, Producer=@producer, Category=@category, Discount=@discount, Quantity=@quantity, Description=@description, ImagePath=@image WHERE Id=@id"
+                : @"INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES(@article,@title,@unit,@price,@supplier,@producer,@category,@discount,@quantity,@description,@image)";
+            var pars = new System.Collections.Generic.List<SqlParameter>
+            {
+                new SqlParameter("@article", articleTextBox.Text.Trim()),
+                new SqlParameter("@title", titleTextBox.Text.Trim()),
+                new SqlParameter("@unit", unitTextBox.Text.Trim()),
+                new SqlParameter("@price", priceNumeric.Value),
+                new SqlParameter("@supplier", supplierTextBox.Text.Trim()),
+                new SqlParameter("@producer", producerTextBox.Text.Trim()),
+                new SqlParameter("@category", categoryTextBox.Text.Trim()),
+                new SqlParameter("@discount", discountNumeric.Value),
+                new SqlParameter("@quantity", quantityNumeric.Value),
+                new SqlParameter("@description", descriptionTextBox.Text.Trim()),
+                new SqlParameter("@image", imageTextBox.Text.Trim())
+            };
+            if (itemId.HasValue) pars.Add(new SqlParameter("@id", itemId.Value));
+            try
+            {
+                Db.Exec(sql, pars.ToArray());
+                DialogResult = DialogResult.OK;
+            }
+            catch (Exception ex) { MessageBox.Show("Ошибка сохранения: " + ex.Message); }
+        }
+    }
+}
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/OrderEditForm.Designer.cs
+НАЗНАЧЕНИЕ: Дизайн формы заказа
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+namespace NeutralTradeExam
+{
+    partial class OrderEditForm
+    {
+        private System.ComponentModel.IContainer components = null;
+        private System.Windows.Forms.NumericUpDown idNumeric;
+        private System.Windows.Forms.DateTimePicker orderDatePicker;
+        private System.Windows.Forms.DateTimePicker deliveryDatePicker;
+        private System.Windows.Forms.ComboBox pickupComboBox;
+        private System.Windows.Forms.ComboBox userComboBox;
+        private System.Windows.Forms.NumericUpDown codeNumeric;
+        private System.Windows.Forms.ComboBox statusComboBox;
+        private System.Windows.Forms.Label idLabel;
+        private System.Windows.Forms.Label orderDateLabel;
+        private System.Windows.Forms.Label deliveryDateLabel;
+        private System.Windows.Forms.Label pickupLabel;
+        private System.Windows.Forms.Label userLabel;
+        private System.Windows.Forms.Label codeLabel;
+        private System.Windows.Forms.Label statusLabel;
+        private System.Windows.Forms.Label lineLabel;
+        private System.Windows.Forms.ComboBox itemComboBox;
+        private System.Windows.Forms.NumericUpDown quantityNumeric;
+        private System.Windows.Forms.Button addLineButton;
+        private System.Windows.Forms.Button removeLineButton;
+        private System.Windows.Forms.DataGridView linesGrid;
+        private System.Windows.Forms.Button saveButton;
+        private System.Windows.Forms.Button cancelButton;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null)) components.Dispose();
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            this.idNumeric = new System.Windows.Forms.NumericUpDown();
+            this.orderDatePicker = new System.Windows.Forms.DateTimePicker();
+            this.deliveryDatePicker = new System.Windows.Forms.DateTimePicker();
+            this.pickupComboBox = new System.Windows.Forms.ComboBox();
+            this.userComboBox = new System.Windows.Forms.ComboBox();
+            this.codeNumeric = new System.Windows.Forms.NumericUpDown();
+            this.statusComboBox = new System.Windows.Forms.ComboBox();
+            this.idLabel = new System.Windows.Forms.Label();
+            this.orderDateLabel = new System.Windows.Forms.Label();
+            this.deliveryDateLabel = new System.Windows.Forms.Label();
+            this.pickupLabel = new System.Windows.Forms.Label();
+            this.userLabel = new System.Windows.Forms.Label();
+            this.codeLabel = new System.Windows.Forms.Label();
+            this.statusLabel = new System.Windows.Forms.Label();
+            this.lineLabel = new System.Windows.Forms.Label();
+            this.itemComboBox = new System.Windows.Forms.ComboBox();
+            this.quantityNumeric = new System.Windows.Forms.NumericUpDown();
+            this.addLineButton = new System.Windows.Forms.Button();
+            this.removeLineButton = new System.Windows.Forms.Button();
+            this.linesGrid = new System.Windows.Forms.DataGridView();
+            this.saveButton = new System.Windows.Forms.Button();
+            this.cancelButton = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize)(this.idNumeric)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.codeNumeric)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.quantityNumeric)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.linesGrid)).BeginInit();
+            this.SuspendLayout();
+            this.idLabel.SetBounds(20, 22, 120, 23); this.idLabel.Text = "Номер";
+            this.orderDateLabel.SetBounds(20, 57, 120, 23); this.orderDateLabel.Text = "Дата заказа";
+            this.deliveryDateLabel.SetBounds(20, 92, 120, 23); this.deliveryDateLabel.Text = "Дата доставки";
+            this.pickupLabel.SetBounds(20, 127, 120, 23); this.pickupLabel.Text = "Пункт выдачи";
+            this.userLabel.SetBounds(20, 162, 120, 23); this.userLabel.Text = "Клиент";
+            this.codeLabel.SetBounds(20, 197, 120, 23); this.codeLabel.Text = "Код";
+            this.statusLabel.SetBounds(20, 232, 120, 23); this.statusLabel.Text = "Статус";
+            this.idNumeric.SetBounds(155, 18, 280, 23); this.idNumeric.Maximum = 1000000;
+            this.orderDatePicker.SetBounds(155, 53, 280, 23);
+            this.deliveryDatePicker.SetBounds(155, 88, 280, 23);
+            this.pickupComboBox.SetBounds(155, 123, 280, 23); this.pickupComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.userComboBox.SetBounds(155, 158, 280, 23); this.userComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.codeNumeric.SetBounds(155, 193, 280, 23); this.codeNumeric.Maximum = 999999;
+            this.statusComboBox.SetBounds(155, 228, 280, 23); this.statusComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.lineLabel.SetBounds(20, 270, 140, 23); this.lineLabel.Text = "Состав заказа";
+            this.itemComboBox.SetBounds(155, 266, 280, 23); this.itemComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.quantityNumeric.SetBounds(445, 266, 70, 23); this.quantityNumeric.Minimum = 1; this.quantityNumeric.Maximum = 10000; this.quantityNumeric.Value = 1;
+            this.addLineButton.SetBounds(525, 263, 90, 28); this.addLineButton.Text = "Добавить"; this.addLineButton.Click += new System.EventHandler(this.addLineButton_Click);
+            this.removeLineButton.SetBounds(625, 263, 90, 28); this.removeLineButton.Text = "Удалить"; this.removeLineButton.Click += new System.EventHandler(this.removeLineButton_Click);
+            this.linesGrid.SetBounds(20, 305, 695, 180); this.linesGrid.AllowUserToAddRows = false; this.linesGrid.ReadOnly = true; this.linesGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect; this.linesGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.saveButton.SetBounds(455, 505, 120, 32); this.saveButton.Text = "Сохранить"; this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
+            this.cancelButton.SetBounds(595, 505, 120, 32); this.cancelButton.Text = "Отмена"; this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.Controls.Add(this.idLabel); this.Controls.Add(this.orderDateLabel); this.Controls.Add(this.deliveryDateLabel); this.Controls.Add(this.pickupLabel);
+            this.Controls.Add(this.userLabel); this.Controls.Add(this.codeLabel); this.Controls.Add(this.statusLabel); this.Controls.Add(this.lineLabel);
+            this.Controls.Add(this.idNumeric); this.Controls.Add(this.orderDatePicker); this.Controls.Add(this.deliveryDatePicker); this.Controls.Add(this.pickupComboBox); this.Controls.Add(this.userComboBox); this.Controls.Add(this.codeNumeric); this.Controls.Add(this.statusComboBox); this.Controls.Add(this.itemComboBox); this.Controls.Add(this.quantityNumeric); this.Controls.Add(this.addLineButton); this.Controls.Add(this.removeLineButton); this.Controls.Add(this.linesGrid); this.Controls.Add(this.saveButton); this.Controls.Add(this.cancelButton);
+            this.ClientSize = new System.Drawing.Size(745, 560);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.Name = "OrderEditForm";
+            this.Text = "Редактирование заказа";
+            ((System.ComponentModel.ISupportInitialize)(this.idNumeric)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.codeNumeric)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.quantityNumeric)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.linesGrid)).EndInit();
+            this.ResumeLayout(false);
+        }
+    }
+}
+
+
+============================================================
+ФАЙЛ: NeutralTradeExam/OrderEditForm.cs
+НАЗНАЧЕНИЕ: Логика формы заказа
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать/заменить файл в папке NeutralTradeExam проекта.
+------------------------------------------------------------
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Windows.Forms;
+
+namespace NeutralTradeExam
+{
+    public partial class OrderEditForm : Form
+    {
+        private readonly int? orderId;
+        private readonly DataTable lines = new DataTable();
+
+        public OrderEditForm(int? id)
+        {
+            orderId = id;
+            InitializeComponent();
+            Ui.Apply(this);
+            saveButton.BackColor = addLineButton.BackColor = removeLineButton.BackColor = Ui.Accent;
+            cancelButton.BackColor = Ui.ExtraBack;
+            Text = id.HasValue ? "Изменение заказа" : "Добавление заказа";
+            PrepareLines();
+            LoadDictionaries();
+            if (id.HasValue) LoadOrder(id.Value);
+            else
+            {
+                idNumeric.Value = Convert.ToDecimal(Db.Scalar("SELECT ISNULL(MAX(Id),0)+1 FROM OrderHeader"));
+                codeNumeric.Value = 100;
+            }
+        }
+
+        private void PrepareLines()
+        {
+            lines.Columns.Add("ItemId", typeof(int));
+            lines.Columns.Add("Артикул", typeof(string));
+            lines.Columns.Add("Наименование", typeof(string));
+            lines.Columns.Add("Количество", typeof(int));
+            linesGrid.DataSource = lines;
+            if (linesGrid.Columns.Contains("ItemId")) linesGrid.Columns["ItemId"].Visible = false;
+        }
+
+        private void LoadDictionaries()
+        {
+            pickupComboBox.DataSource = Db.Table("SELECT Id, AddressText FROM PickupPoint ORDER BY Id");
+            pickupComboBox.DisplayMember = "AddressText"; pickupComboBox.ValueMember = "Id";
+            userComboBox.DataSource = Db.Table("SELECT Id, FullName FROM AppUser ORDER BY FullName");
+            userComboBox.DisplayMember = "FullName"; userComboBox.ValueMember = "Id";
+            statusComboBox.DataSource = Db.Table("SELECT Id, Title FROM OrderStatus ORDER BY Id");
+            statusComboBox.DisplayMember = "Title"; statusComboBox.ValueMember = "Id";
+            itemComboBox.DataSource = Db.Table("SELECT Id, Article + ' - ' + Title AS DisplayText, Article, Title FROM Item ORDER BY Article");
+            itemComboBox.DisplayMember = "DisplayText"; itemComboBox.ValueMember = "Id";
+        }
+
+        private void LoadOrder(int id)
+        {
+            var h = Db.Table("SELECT * FROM OrderHeader WHERE Id=@id", new SqlParameter("@id", id));
+            if (h.Rows.Count == 0) return;
+            var r = h.Rows[0];
+            idNumeric.Value = id; idNumeric.Enabled = false;
+            orderDatePicker.Value = Convert.ToDateTime(r["OrderDate"]);
+            deliveryDatePicker.Value = Convert.ToDateTime(r["DeliveryDate"]);
+            pickupComboBox.SelectedValue = Convert.ToInt32(r["PickupPointId"]);
+            userComboBox.SelectedValue = Convert.ToInt32(r["AppUserId"]);
+            codeNumeric.Value = Convert.ToDecimal(r["ReceiveCode"]);
+            statusComboBox.SelectedValue = Convert.ToInt32(r["StatusId"]);
+            var dt = Db.Table(@"SELECT l.ItemId, i.Article AS [Артикул], i.Title AS [Наименование], l.Quantity AS [Количество]
+                                FROM OrderLine l INNER JOIN Item i ON i.Id=l.ItemId WHERE l.OrderId=@id", new SqlParameter("@id", id));
+            foreach (DataRow row in dt.Rows) lines.ImportRow(row);
+        }
+
+        private void addLineButton_Click(object sender, EventArgs e)
+        {
+            if (itemComboBox.SelectedValue == null) return;
+            int itemId = Convert.ToInt32(itemComboBox.SelectedValue);
+            var dt = Db.Table("SELECT Article, Title FROM Item WHERE Id=@id", new SqlParameter("@id", itemId));
+            if (dt.Rows.Count == 0) return;
+            lines.Rows.Add(itemId, Convert.ToString(dt.Rows[0]["Article"]), Convert.ToString(dt.Rows[0]["Title"]), Convert.ToInt32(quantityNumeric.Value));
+        }
+
+        private void removeLineButton_Click(object sender, EventArgs e)
+        {
+            if (linesGrid.CurrentRow != null) linesGrid.Rows.Remove(linesGrid.CurrentRow);
+        }
+
+        private void saveButton_Click(object sender, EventArgs e)
+        {
+            if (lines.Rows.Count == 0)
+            {
+                MessageBox.Show("Добавьте хотя бы одну позицию в заказ.");
+                return;
+            }
+            int id = Convert.ToInt32(idNumeric.Value);
+            try
+            {
+                if (orderId.HasValue)
+                    Db.Exec(@"UPDATE OrderHeader SET OrderDate=@od, DeliveryDate=@dd, PickupPointId=@pp, AppUserId=@u, ReceiveCode=@c, StatusId=@s WHERE Id=@id",
+                        P("@od", orderDatePicker.Value.Date), P("@dd", deliveryDatePicker.Value.Date), P("@pp", pickupComboBox.SelectedValue), P("@u", userComboBox.SelectedValue), P("@c", codeNumeric.Value), P("@s", statusComboBox.SelectedValue), P("@id", id));
+                else
+                    Db.Exec(@"INSERT INTO OrderHeader(Id,OrderDate,DeliveryDate,PickupPointId,AppUserId,ReceiveCode,StatusId) VALUES(@id,@od,@dd,@pp,@u,@c,@s)",
+                        P("@id", id), P("@od", orderDatePicker.Value.Date), P("@dd", deliveryDatePicker.Value.Date), P("@pp", pickupComboBox.SelectedValue), P("@u", userComboBox.SelectedValue), P("@c", codeNumeric.Value), P("@s", statusComboBox.SelectedValue));
+                Db.Exec("DELETE FROM OrderLine WHERE OrderId=@id", P("@id", id));
+                foreach (DataRow row in lines.Rows)
+                    Db.Exec("INSERT INTO OrderLine(OrderId, ItemId, Quantity) VALUES(@o,@i,@q)", P("@o", id), P("@i", row["ItemId"]), P("@q", row["Количество"]));
+                DialogResult = DialogResult.OK;
+            }
+            catch (Exception ex) { MessageBox.Show("Ошибка сохранения: " + ex.Message); }
+        }
+
+        private SqlParameter P(string name, object value) { return new SqlParameter(name, value ?? DBNull.Value); }
+    }
+}
+
+
+============================================================
+ФАЙЛ: Sql/CreateDatabase.sql
+НАЗНАЧЕНИЕ: Скрипт создания базы данных
+КУДА ВСТАВИТЬ/СОЗДАТЬ: создать файл в папке Sql проекта и выполнить через SSMS 18.
+------------------------------------------------------------
+IF DB_ID(N'TradeExamNeutral') IS NOT NULL
+BEGIN
+    ALTER DATABASE TradeExamNeutral SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE TradeExamNeutral;
+END
+GO
+CREATE DATABASE TradeExamNeutral;
+GO
+USE TradeExamNeutral;
+GO
+CREATE TABLE RoleEntity (
+    Id INT IDENTITY(1,1) CONSTRAINT PK_RoleEntity PRIMARY KEY,
+    Title NVARCHAR(50) NOT NULL UNIQUE
+);
+CREATE TABLE AppUser (
+    Id INT IDENTITY(1,1) CONSTRAINT PK_AppUser PRIMARY KEY,
+    RoleId INT NOT NULL CONSTRAINT FK_AppUser_RoleEntity REFERENCES RoleEntity(Id),
+    FullName NVARCHAR(150) NOT NULL,
+    Login NVARCHAR(100) NOT NULL UNIQUE,
+    PasswordText NVARCHAR(100) NOT NULL
+);
+CREATE TABLE Item (
+    Id INT IDENTITY(1,1) CONSTRAINT PK_Item PRIMARY KEY,
+    Article NVARCHAR(30) NOT NULL UNIQUE,
+    Title NVARCHAR(200) NOT NULL,
+    Unit NVARCHAR(20) NOT NULL,
+    Price DECIMAL(10,2) NOT NULL,
+    Supplier NVARCHAR(150) NULL,
+    Producer NVARCHAR(150) NULL,
+    Category NVARCHAR(100) NULL,
+    Discount INT NOT NULL DEFAULT 0,
+    Quantity INT NOT NULL DEFAULT 0,
+    Description NVARCHAR(MAX) NULL,
+    ImagePath NVARCHAR(260) NULL
+);
+CREATE TABLE PickupPoint (
+    Id INT IDENTITY(1,1) CONSTRAINT PK_PickupPoint PRIMARY KEY,
+    AddressText NVARCHAR(250) NOT NULL
+);
+CREATE TABLE OrderStatus (
+    Id INT IDENTITY(1,1) CONSTRAINT PK_OrderStatus PRIMARY KEY,
+    Title NVARCHAR(50) NOT NULL UNIQUE
+);
+CREATE TABLE OrderHeader (
+    Id INT NOT NULL CONSTRAINT PK_OrderHeader PRIMARY KEY,
+    OrderDate DATE NOT NULL,
+    DeliveryDate DATE NULL,
+    PickupPointId INT NOT NULL CONSTRAINT FK_OrderHeader_PickupPoint REFERENCES PickupPoint(Id),
+    AppUserId INT NULL CONSTRAINT FK_OrderHeader_AppUser REFERENCES AppUser(Id),
+    ReceiveCode INT NOT NULL,
+    StatusId INT NOT NULL CONSTRAINT FK_OrderHeader_OrderStatus REFERENCES OrderStatus(Id)
+);
+CREATE TABLE OrderLine (
+    Id INT IDENTITY(1,1) CONSTRAINT PK_OrderLine PRIMARY KEY,
+    OrderId INT NOT NULL CONSTRAINT FK_OrderLine_OrderHeader REFERENCES OrderHeader(Id) ON DELETE CASCADE,
+    ItemId INT NOT NULL CONSTRAINT FK_OrderLine_Item REFERENCES Item(Id),
+    Quantity INT NOT NULL CHECK (Quantity > 0)
+);
+GO
+
+INSERT INTO RoleEntity(Title) VALUES (N'Авторизированный клиент');
+INSERT INTO RoleEntity(Title) VALUES (N'Администратор');
+INSERT INTO RoleEntity(Title) VALUES (N'Менеджер');
+INSERT INTO AppUser(RoleId, FullName, Login, PasswordText) SELECT Id, N'Никифорова Весения Николаевна', N'94d5ous@gmail.com', N'uzWC67' FROM RoleEntity WHERE Title=N'Администратор';
+INSERT INTO AppUser(RoleId, FullName, Login, PasswordText) SELECT Id, N'Сазонов Руслан Германович', N'uth4iz@mail.com', N'2L6KZG' FROM RoleEntity WHERE Title=N'Администратор';
+INSERT INTO AppUser(RoleId, FullName, Login, PasswordText) SELECT Id, N'Одинцов Серафим Артёмович', N'yzls62@outlook.com', N'JlFRCZ' FROM RoleEntity WHERE Title=N'Администратор';
+INSERT INTO AppUser(RoleId, FullName, Login, PasswordText) SELECT Id, N'Степанов Михаил Артёмович', N'1diph5e@tutanota.com', N'8ntwUp' FROM RoleEntity WHERE Title=N'Менеджер';
+INSERT INTO AppUser(RoleId, FullName, Login, PasswordText) SELECT Id, N'Ворсин Петр Евгеньевич', N'tjde7c@yahoo.com', N'YOyhfR' FROM RoleEntity WHERE Title=N'Менеджер';
+INSERT INTO AppUser(RoleId, FullName, Login, PasswordText) SELECT Id, N'Старикова Елена Павловна', N'wpmrc3do@tutanota.com', N'RSbvHv' FROM RoleEntity WHERE Title=N'Менеджер';
+INSERT INTO AppUser(RoleId, FullName, Login, PasswordText) SELECT Id, N'Михайлюк Анна Вячеславовна', N'5d4zbu@tutanota.com', N'rwVDh9' FROM RoleEntity WHERE Title=N'Авторизированный клиент';
+INSERT INTO AppUser(RoleId, FullName, Login, PasswordText) SELECT Id, N'Ситдикова Елена Анатольевна', N'ptec8ym@yahoo.com', N'LdNyos' FROM RoleEntity WHERE Title=N'Авторизированный клиент';
+INSERT INTO AppUser(RoleId, FullName, Login, PasswordText) SELECT Id, N'Ворсин Петр Евгеньевич', N'1qz4kw@mail.com', N'gynQMT' FROM RoleEntity WHERE Title=N'Авторизированный клиент';
+INSERT INTO AppUser(RoleId, FullName, Login, PasswordText) SELECT Id, N'Старикова Елена Павловна', N'4np6se@mail.com', N'AtnDjr' FROM RoleEntity WHERE Title=N'Авторизированный клиент';
+INSERT INTO OrderStatus(Title) VALUES (N'Завершен');
+INSERT INTO OrderStatus(Title) VALUES (N'Новый ');
+INSERT INTO PickupPoint(AddressText) VALUES (N'420151, г. Лесной, ул. Вишневая, 32');
+INSERT INTO PickupPoint(AddressText) VALUES (N'125061, г. Лесной, ул. Подгорная, 8');
+INSERT INTO PickupPoint(AddressText) VALUES (N'630370, г. Лесной, ул. Шоссейная, 24');
+INSERT INTO PickupPoint(AddressText) VALUES (N'400562, г. Лесной, ул. Зеленая, 32');
+INSERT INTO PickupPoint(AddressText) VALUES (N'614510, г. Лесной, ул. Маяковского, 47');
+INSERT INTO PickupPoint(AddressText) VALUES (N'410542, г. Лесной, ул. Светлая, 46');
+INSERT INTO PickupPoint(AddressText) VALUES (N'620839, г. Лесной, ул. Цветочная, 8');
+INSERT INTO PickupPoint(AddressText) VALUES (N'443890, г. Лесной, ул. Коммунистическая, 1');
+INSERT INTO PickupPoint(AddressText) VALUES (N'603379, г. Лесной, ул. Спортивная, 46');
+INSERT INTO PickupPoint(AddressText) VALUES (N'603721, г. Лесной, ул. Гоголя, 41');
+INSERT INTO PickupPoint(AddressText) VALUES (N'410172, г. Лесной, ул. Северная, 13');
+INSERT INTO PickupPoint(AddressText) VALUES (N'614611, г. Лесной, ул. Молодежная, 50');
+INSERT INTO PickupPoint(AddressText) VALUES (N'454311, г.Лесной, ул. Новая, 19');
+INSERT INTO PickupPoint(AddressText) VALUES (N'660007, г.Лесной, ул. Октябрьская, 19');
+INSERT INTO PickupPoint(AddressText) VALUES (N'603036, г. Лесной, ул. Садовая, 4');
+INSERT INTO PickupPoint(AddressText) VALUES (N'394060, г.Лесной, ул. Фрунзе, 43');
+INSERT INTO PickupPoint(AddressText) VALUES (N'410661, г. Лесной, ул. Школьная, 50');
+INSERT INTO PickupPoint(AddressText) VALUES (N'625590, г. Лесной, ул. Коммунистическая, 20');
+INSERT INTO PickupPoint(AddressText) VALUES (N'625683, г. Лесной, ул. 8 Марта');
+INSERT INTO PickupPoint(AddressText) VALUES (N'450983, г.Лесной, ул. Комсомольская, 26');
+INSERT INTO PickupPoint(AddressText) VALUES (N'394782, г. Лесной, ул. Чехова, 3');
+INSERT INTO PickupPoint(AddressText) VALUES (N'603002, г. Лесной, ул. Дзержинского, 28');
+INSERT INTO PickupPoint(AddressText) VALUES (N'450558, г. Лесной, ул. Набережная, 30');
+INSERT INTO PickupPoint(AddressText) VALUES (N'344288, г. Лесной, ул. Чехова, 1');
+INSERT INTO PickupPoint(AddressText) VALUES (N'614164, г.Лесной,  ул. Степная, 30');
+INSERT INTO PickupPoint(AddressText) VALUES (N'394242, г. Лесной, ул. Коммунистическая, 43');
+INSERT INTO PickupPoint(AddressText) VALUES (N'660540, г. Лесной, ул. Солнечная, 25');
+INSERT INTO PickupPoint(AddressText) VALUES (N'125837, г. Лесной, ул. Шоссейная, 40');
+INSERT INTO PickupPoint(AddressText) VALUES (N'125703, г. Лесной, ул. Партизанская, 49');
+INSERT INTO PickupPoint(AddressText) VALUES (N'625283, г. Лесной, ул. Победы, 46');
+INSERT INTO PickupPoint(AddressText) VALUES (N'614753, г. Лесной, ул. Полевая, 35');
+INSERT INTO PickupPoint(AddressText) VALUES (N'426030, г. Лесной, ул. Маяковского, 44');
+INSERT INTO PickupPoint(AddressText) VALUES (N'450375, г. Лесной ул. Клубная, 44');
+INSERT INTO PickupPoint(AddressText) VALUES (N'625560, г. Лесной, ул. Некрасова, 12');
+INSERT INTO PickupPoint(AddressText) VALUES (N'630201, г. Лесной, ул. Комсомольская, 17');
+INSERT INTO PickupPoint(AddressText) VALUES (N'190949, г. Лесной, ул. Мичурина, 26');
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'А112Т4', N'Ботинки', N'шт.', 4990.0, N'Kari', N'Kari', N'Женская обувь', 3, 6, N'Женские Ботинки демисезонные kari', N'1.jpg');
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'F635R4', N'Ботинки', N'шт.', 3244.0, N'Обувь для вас', N'Marco Tozzi', N'Женская обувь', 2, 13, N'Ботинки Marco Tozzi женские демисезонные, размер 39, цвет бежевый', N'2.jpg');
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'H782T5', N'Туфли', N'шт.', 4499.0, N'Kari', N'Kari', N'Мужская обувь', 4, 5, N'Туфли kari мужские классика MYZ21AW-450A, размер 43, цвет: черный', N'3.jpg');
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'G783F5', N'Ботинки', N'шт.', 5900.0, N'Kari', N'Рос', N'Мужская обувь', 2, 8, N'Мужские ботинки Рос-Обувь кожаные с натуральным мехом', N'4.jpg');
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'J384T6', N'Ботинки', N'шт.', 3800.0, N'Обувь для вас', N'Rieker', N'Мужская обувь', 2, 16, N'B3430/14 Полуботинки мужские Rieker', N'5.jpg');
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'D572U8', N'Кроссовки', N'шт.', 4100.0, N'Обувь для вас', N'Рос', N'Мужская обувь', 3, 6, N'129615-4 Кроссовки мужские', N'6.jpg');
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'F572H7', N'Туфли', N'шт.', 2700.0, N'Kari', N'Marco Tozzi', N'Женская обувь', 2, 14, N'Туфли Marco Tozzi женские летние, размер 39, цвет черный', N'7.jpg');
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'D329H3', N'Полуботинки', N'шт.', 1890.0, N'Обувь для вас', N'Alessio Nesca', N'Женская обувь', 4, 4, N'Полуботинки Alessio Nesca женские 3-30797-47, размер 37, цвет: бордовый', N'8.jpg');
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'B320R5', N'Туфли', N'шт.', 4300.0, N'Kari', N'Rieker', N'Женская обувь', 2, 6, N'Туфли Rieker женские демисезонные, размер 41, цвет коричневый', N'9.jpg');
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'G432E4', N'Туфли', N'шт.', 2800.0, N'Kari', N'Kari', N'Женская обувь', 3, 15, N'Туфли kari женские TR-YR-413017, размер 37, цвет: черный', N'10.jpg');
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'S213E3', N'Полуботинки', N'шт.', 2156.0, N'Обувь для вас', N'CROSBY', N'Мужская обувь', 3, 6, N'407700/01-01 Полуботинки мужские CROSBY', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'E482R4', N'Полуботинки', N'шт.', 1800.0, N'Kari', N'Kari', N'Женская обувь', 2, 14, N'Полуботинки kari женские MYZ20S-149, размер 41, цвет: черный', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'S634B5', N'Кеды', N'шт.', 5500.0, N'Обувь для вас', N'CROSBY', N'Мужская обувь', 3, 0, N'Кеды Caprice мужские демисезонные, размер 42, цвет черный', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'K345R4', N'Полуботинки', N'шт.', 2100.0, N'Обувь для вас', N'CROSBY', N'Мужская обувь', 2, 3, N'407700/01-02 Полуботинки мужские CROSBY', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'O754F4', N'Туфли', N'шт.', 5400.0, N'Обувь для вас', N'Rieker', N'Женская обувь', 4, 18, N'Туфли женские демисезонные Rieker артикул 55073-68/37', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'G531F4', N'Ботинки', N'шт.', 6600.0, N'Kari', N'Kari', N'Женская обувь', 12, 9, N'Ботинки женские зимние ROMER арт. 893167-01 Черный', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'J542F5', N'Тапочки', N'шт.', 500.0, N'Kari', N'Kari', N'Мужская обувь', 13, 0, N'Тапочки мужские Арт.70701-55-67син р.41', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'B431R5', N'Ботинки', N'шт.', 2700.0, N'Обувь для вас', N'Rieker', N'Мужская обувь', 2, 5, N'Мужские кожаные ботинки/мужские ботинки', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'P764G4', N'Туфли', N'шт.', 6800.0, N'Kari', N'CROSBY', N'Женская обувь', 15, 15, N'Туфли женские, ARGO, размер 38', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'C436G5', N'Ботинки', N'шт.', 10200.0, N'Kari', N'Alessio Nesca', N'Женская обувь', 15, 9, N'Ботинки женские, ARGO, размер 40', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'F427R5', N'Ботинки', N'шт.', 11800.0, N'Обувь для вас', N'Rieker', N'Женская обувь', 15, 11, N'Ботинки на молнии с декоративной пряжкой FRAU', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'N457T5', N'Полуботинки', N'шт.', 4600.0, N'Kari', N'CROSBY', N'Женская обувь', 3, 13, N'Полуботинки Ботинки черные зимние, мех', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'D364R4', N'Туфли', N'шт.', 12400.0, N'Kari', N'Kari', N'Женская обувь', 16, 5, N'Туфли Luiza Belly женские Kate-lazo черные из натуральной замши', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'S326R5', N'Тапочки', N'шт.', 9900.0, N'Обувь для вас', N'CROSBY', N'Мужская обувь', 17, 15, N'Мужские кожаные тапочки "Профиль С.Дали" ', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'L754R4', N'Полуботинки', N'шт.', 1700.0, N'Kari', N'Kari', N'Женская обувь', 2, 7, N'Полуботинки kari женские WB2020SS-26, размер 38, цвет: черный', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'M542T5', N'Кроссовки', N'шт.', 2800.0, N'Обувь для вас', N'Rieker', N'Мужская обувь', 18, 3, N'Кроссовки мужские TOFA', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'D268G5', N'Туфли', N'шт.', 4399.0, N'Обувь для вас', N'Rieker', N'Женская обувь', 3, 12, N'Туфли Rieker женские демисезонные, размер 36, цвет коричневый', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'T324F5', N'Сапоги', N'шт.', 4699.0, N'Kari', N'CROSBY', N'Женская обувь', 2, 5, N'Сапоги замша Цвет: синий', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'K358H6', N'Тапочки', N'шт.', 599.0, N'Kari', N'Rieker', N'Мужская обувь', 20, 2, N'Тапочки мужские син р.41', NULL);
+INSERT INTO Item(Article,Title,Unit,Price,Supplier,Producer,Category,Discount,Quantity,Description,ImagePath) VALUES (N'H535R5', N'Ботинки', N'шт.', 2300.0, N'Обувь для вас', N'Rieker', N'Женская обувь', 2, 7, N'Женские Ботинки демисезонные', NULL);
+INSERT INTO OrderHeader(Id,OrderDate,DeliveryDate,PickupPointId,AppUserId,ReceiveCode,StatusId) SELECT 1, '2025-02-27', '2025-04-20', 1, u.Id, 901, s.Id FROM AppUser u CROSS JOIN OrderStatus s WHERE u.FullName=N'Степанов Михаил Артёмович' AND s.Title=N'Завершен';
+INSERT INTO OrderHeader(Id,OrderDate,DeliveryDate,PickupPointId,AppUserId,ReceiveCode,StatusId) SELECT 2, '2022-09-28', '2025-04-21', 11, u.Id, 902, s.Id FROM AppUser u CROSS JOIN OrderStatus s WHERE u.FullName=N'Никифорова Весения Николаевна' AND s.Title=N'Завершен';
+INSERT INTO OrderHeader(Id,OrderDate,DeliveryDate,PickupPointId,AppUserId,ReceiveCode,StatusId) SELECT 3, '2025-03-21', '2025-04-22', 2, u.Id, 903, s.Id FROM AppUser u CROSS JOIN OrderStatus s WHERE u.FullName=N'Сазонов Руслан Германович' AND s.Title=N'Завершен';
+INSERT INTO OrderHeader(Id,OrderDate,DeliveryDate,PickupPointId,AppUserId,ReceiveCode,StatusId) SELECT 4, '2025-02-20', '2025-04-23', 11, u.Id, 904, s.Id FROM AppUser u CROSS JOIN OrderStatus s WHERE u.FullName=N'Одинцов Серафим Артёмович' AND s.Title=N'Завершен';
+INSERT INTO OrderHeader(Id,OrderDate,DeliveryDate,PickupPointId,AppUserId,ReceiveCode,StatusId) SELECT 5, '2025-03-17', '2025-04-24', 2, u.Id, 905, s.Id FROM AppUser u CROSS JOIN OrderStatus s WHERE u.FullName=N'Степанов Михаил Артёмович' AND s.Title=N'Завершен';
+INSERT INTO OrderHeader(Id,OrderDate,DeliveryDate,PickupPointId,AppUserId,ReceiveCode,StatusId) SELECT 6, '2025-03-01', '2025-04-25', 15, u.Id, 906, s.Id FROM AppUser u CROSS JOIN OrderStatus s WHERE u.FullName=N'Никифорова Весения Николаевна' AND s.Title=N'Завершен';
+INSERT INTO OrderHeader(Id,OrderDate,DeliveryDate,PickupPointId,AppUserId,ReceiveCode,StatusId) SELECT 7, N'30.02.2025', '2025-04-26', 3, u.Id, 907, s.Id FROM AppUser u CROSS JOIN OrderStatus s WHERE u.FullName=N'Сазонов Руслан Германович' AND s.Title=N'Завершен';
+INSERT INTO OrderHeader(Id,OrderDate,DeliveryDate,PickupPointId,AppUserId,ReceiveCode,StatusId) SELECT 8, '2025-03-31', '2025-04-27', 19, u.Id, 908, s.Id FROM AppUser u CROSS JOIN OrderStatus s WHERE u.FullName=N'Одинцов Серафим Артёмович' AND s.Title=N'Новый ';
+INSERT INTO OrderHeader(Id,OrderDate,DeliveryDate,PickupPointId,AppUserId,ReceiveCode,StatusId) SELECT 9, '2025-04-02', '2025-04-28', 5, u.Id, 909, s.Id FROM AppUser u CROSS JOIN OrderStatus s WHERE u.FullName=N'Степанов Михаил Артёмович' AND s.Title=N'Новый ';
+INSERT INTO OrderHeader(Id,OrderDate,DeliveryDate,PickupPointId,AppUserId,ReceiveCode,StatusId) SELECT 10, '2025-04-03', '2025-04-29', 19, u.Id, 910, s.Id FROM AppUser u CROSS JOIN OrderStatus s WHERE u.FullName=N'Степанов Михаил Артёмович' AND s.Title=N'Новый ';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 1, Id, 2 FROM Item WHERE Article=N'А112Т4';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 1, Id, 2 FROM Item WHERE Article=N'F635R4';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 2, Id, 1 FROM Item WHERE Article=N'H782T5';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 2, Id, 1 FROM Item WHERE Article=N'G783F5';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 3, Id, 10 FROM Item WHERE Article=N'J384T6';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 3, Id, 10 FROM Item WHERE Article=N'D572U8';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 4, Id, 5 FROM Item WHERE Article=N'F572H7';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 4, Id, 4 FROM Item WHERE Article=N'D329H3';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 5, Id, 2 FROM Item WHERE Article=N'А112Т4';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 5, Id, 2 FROM Item WHERE Article=N'F635R4';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 6, Id, 1 FROM Item WHERE Article=N'H782T5';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 6, Id, 1 FROM Item WHERE Article=N'G783F5';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 7, Id, 10 FROM Item WHERE Article=N'J384T6';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 7, Id, 10 FROM Item WHERE Article=N'D572U8';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 8, Id, 5 FROM Item WHERE Article=N'F572H7';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 8, Id, 4 FROM Item WHERE Article=N'D329H3';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 9, Id, 5 FROM Item WHERE Article=N'B320R5';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 9, Id, 1 FROM Item WHERE Article=N'G432E4';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 10, Id, 5 FROM Item WHERE Article=N'S213E3';
+INSERT INTO OrderLine(OrderId, ItemId, Quantity) SELECT 10, Id, 5 FROM Item WHERE Article=N'E482R4';
+
+============================================================
+ЧАСТЬ 9. ЧАСТЫЕ ОШИБКИ И РЕШЕНИЯ
+============================================================
+
+1. Ошибка подключения к БД.
+   Проверь App.config и имя SQL Server в Data Source.
+   Проверь, что в SSMS создана база TradeExamNeutral.
+
+2. Фото товара не отображается.
+   Проверь, что файл лежит в NeutralTradeExam\Resources\ProductImages.
+   Проверь, что имя файла совпадает с ImagePath в таблице Item.
+   Проверь свойство Copy to Output Directory = Copy if newer для картинок.
+
+3. Форма не открывается в дизайнере.
+   В файлах Designer.cs не должно быть циклов, var и ручной сложной логики внутри InitializeComponent.
+   В этом проекте дизайнеры написаны безопасно: элементы создаются явно.
+
+4. Не работает удаление товара.
+   Если товар есть в заказе, SQL Server может не дать удалить его из-за связей.
+   В учебном проекте можно либо сначала удалить строки заказа, либо не удалять товары, которые уже использованы в заказах.
+
+5. Русские названия колонок не проблема.
+   В SQL-запросах используются псевдонимы AS [Наименование], AS [Фото] и т.д.
+   В коде DataGridView обращается к этим колонкам по русским заголовкам.
+
+============================================================
+ЧАСТЬ 10. ЧТО ГОВОРИТЬ НА ЗАЩИТЕ
+============================================================
+
+Можно объяснить так:
+"Я использовал нейтральную структуру базы данных. Основная сущность называется Item, а не Shoe, поэтому систему можно адаптировать под любую торговую предметную область. Роли пользователей хранятся в таблице RoleEntity. После авторизации роль сохраняется в AppState, и интерфейс открывает или скрывает функции в зависимости от роли. Данные загружаются через ADO.NET в DataTable. Для каталога используется DataGridView, в первой колонке вручную создаётся DataGridViewImageColumn для миниатюр, а справа отображается крупное фото выбранного товара. Скидка больше 15% подсвечивается цветом #2E8B57 согласно заданию."
